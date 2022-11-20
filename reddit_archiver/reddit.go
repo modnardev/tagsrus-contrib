@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"log"
 	"net/http"
@@ -12,6 +13,7 @@ import (
 )
 
 var tagsrusHost = "http://192.168.1.100:8080"
+// https://www.reddit.com/settings/data-request
 
 // var tagsrusHost = "http://localhost:8080"
 
@@ -92,6 +94,10 @@ func main() {
 	posts := make(chan *snoo.Post)
 	go func() {
 		browserExtURL, _ := url.Parse(tagsrusHost + "/api/import")
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		client := &http.Client{Transport: tr}
 
 		for post := range posts {
 			q := browserExtURL.Query()
@@ -103,7 +109,7 @@ func main() {
 				fmt.Println("error:", err)
 			}
 
-			resp, err := (&http.Client{}).Do(req)
+			resp, err := client.Do(req)
 			if err != nil {
 				fmt.Println("error:", err)
 			}
